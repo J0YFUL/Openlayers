@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Custom Circle Render</title>
+    <!-- Open Layer import -->
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.8.1/css/ol.css" type="text/css">
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.8.1/build/ol.js"></script>
+    <!-- Open Layer Extension -->
+    <link rel="stylesheet" href="https://viglino.github.io/ol-ext/dist/ol-ext.css" />
+    <script src="https://viglino.github.io/ol-ext/dist/ol-ext.js"></script>
+    <style>
+        html, body{ 
+            height: 100%;
+        }
+        .map {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map" class="map"></div>
+    <script>
+        const circleFeature = new ol.Feature({
+            geometry: new ol.geom.Circle([12127398.797692968, 4063894.123105166], 100),
+        });
+        circleFeature.setStyle(
+            new ol.style.Style({
+                renderer(coordinates, state) {
+                    const [[x, y], [x1, y1]] = coordinates;
+                    const ctx = state.context;
+                    const dx = x1 - x;
+                    const dy = y1 - y;
+                    const radius = Math.sqrt(dx * dx + dy * dy);
+
+                    const innerRadius = 0;
+                    const outerRadius = radius * 1.4;
+
+                    const gradient = ctx.createRadialGradient(
+                        x,
+                        y,
+                        innerRadius,
+                        x,
+                        y,
+                        outerRadius
+                    );
+                    gradient.addColorStop(0, 'rgba(255,0,0,0)');
+                    gradient.addColorStop(0.6, 'rgba(255,0,0,0.2)');
+                    gradient.addColorStop(1, 'rgba(255,0,0,0.8)');
+                    ctx.beginPath();
+                    ctx.arc(x, y, radius, 0, 2 * Math.PI, true);
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+
+                    ctx.arc(x, y, radius, 0, 2 * Math.PI, true);
+                    ctx.strokeStyle = 'rgba(255,0,0,1)';
+                    ctx.stroke();
+                },
+            })
+        );
+
+        var map = new ol.Map({
+            layers: [
+                new ol.layer.Tile({
+                    source: new ol.source.OSM(),
+                    visible: true,
+                }),
+                new ol.layer.Vector({
+                    source: new ol.source.Vector({
+                        features: [circleFeature],
+                    }),
+                }),
+            ],
+            target: 'map',
+            view: new ol.View({
+                center: [12127398.797692968, 4063894.123105166],
+                zoom: 19,
+            }),
+        });
+    </script>
+</body>
+
+</html>
