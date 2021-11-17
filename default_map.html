@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.8.1/css/ol.css"
+    type="text/css">
+  <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.8.1/build/ol.js"></script>
+  <style>
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+    }
+
+    .map {
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+  <title>Default Map</title>
+</head>
+
+<body>
+  <div id="map" class="map"></div>
+  <script type="text/javascript">
+
+    function getWaypointSource() {
+      // Shanghai - Tokyo
+      var waypoints1 = [[121.74940748038463, 31.3038498266498], [139.793414, 35.599839]];
+      // Tokyo - Mazatlan
+      var waypoints2 = [[139.793414, 35.599839], [139.7866953085557, 34.95238928620567], [139.7932190790438, 34.94341008645255], [139.83581401395531, 34.8999276941446], [139.86133246606346, 34.885194608950655], [139.95666519455847, 34.85823400475112], [248.3832370206125, 22.587736538423403], [248.74301005136095, 22.549922869157374], [249.19228897633727, 22.565554260740843], [249.77313697018346, 22.595795939565313], [253.5684859071874, 23.14757592277051], [253.5684859071874, 23.14757592277051], [253.58277800000002, 23.190278]];
+      var waypoints = waypoints1;
+
+      function buildFeatures(waypoints) {
+        let features = []
+        for (let i = 0; i < waypoints.length - 1; i++) {
+          let from = waypoints[i];
+          let to = waypoints[i + 1];
+          let geometry = new ol.geom.LineString([from, to],
+          );
+          geometry.transform('EPSG:4326', 'EPSG:3857');
+          features.push(new ol.Feature({ geometry }))
+        }
+        return features;
+      }
+      var features = buildFeatures(waypoints);
+      var waypointSource = new ol.source.Vector({ features: features });
+      return waypointSource;
+    }
+    var waypointSource = getWaypointSource();
+
+    var map = new ol.Map({
+      target: 'map',
+      layers: [
+        new ol.layer.Tile({
+          source: new ol.source.OSM()
+        }),
+        new ol.layer.Vector({
+          source: waypointSource,
+        })
+      ],
+      view: new ol.View({
+        center: ol.proj.fromLonLat([37.41, 8.82]),
+        zoom: 4
+      })
+    });
+  </script>
+</body>
+
+</html>
