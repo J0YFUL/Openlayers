@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <!-- ol.css, ol.js import, css는 import 하지 않으면 기본제공되는 
+			버튼이 깨져서 나옴 -->
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.8.1/css/ol.css" type="text/css">
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.8.1/build/ol.js"></script>
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+
+        .map {
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+    <title>OpenLayers example</title>
+</head>
+
+<body>
+    <div id="map" class="map"></div>
+    <script type="text/javascript">
+
+        var layers = [
+            new ol.layer.Tile({
+                title: 'osm',
+                type: 'base',
+                visible: true,
+                source: new ol.source.OSM()
+            }),
+            // 다른 배경의 레이어 추가
+            new ol.layer.Tile({
+                title: 'bing_road',
+                type: 'base',
+                source: new ol.source.BingMaps({
+                    key: 'Ag0RC261GIS2piKGzsg9RmnvrT8GHg9jVY27kPWUs28axMxdSfGJhCf2unSg6eeg',
+                    imagerySet: 'RoadOnDemand',
+                }),
+            }),
+        ];
+
+        var lay = new ol.layer.Vector({
+            source: new ol.source.Vector(),
+            // 이미지를 설정하지 않으면 점이 됨.
+            style: new ol.style.Style({
+                image: new ol.style.Icon({
+                    src: './resources/poi2.png',
+                    scale: 0.2,
+                })
+            })
+        });
+        layers.push(lay); // lay 레이어를 추가함으로 layers 배열은 3개의 인덱스를 가진다.(layers[0],layers[1],layers[2])
+
+        var map = new ol.Map({
+            target: 'map',
+            layers: layers,
+            view: new ol.View({
+                center: ol.proj.fromLonLat([111, -7.5]),
+                zoom: 12,
+                rotation: 0,
+            }),
+        });
+    </script>
+</body>
+
+</html>

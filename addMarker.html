@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <!-- ol.css, ol.js import, css는 import 하지 않으면 기본제공되는 
+			버튼이 깨져서 나옴 -->
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.8.1/css/ol.css" type="text/css">
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.8.1/build/ol.js"></script>
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+
+        .map {
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+    <title>OpenLayers example</title>
+</head>
+
+<body>
+    <div id="map" class="map"></div>
+    <script type="text/javascript">
+
+        var layers = [
+            new ol.layer.Tile({
+                title: 'osm',
+                type: 'base',
+                visible: true,
+                source: new ol.source.OSM()
+            }),
+        ];
+
+        var lay = new ol.layer.Vector({
+            source: new ol.source.Vector(),
+            // 이미지를 설정하지 않으면 점이 됨.
+            style: new ol.style.Style({
+                image: new ol.style.Icon({
+                    src: './resources/poi2.png',
+                    scale: 0.2,
+                })
+            })
+        });
+        layers.push(lay);
+
+        var map = new ol.Map({
+            target: 'map',
+            layers: layers,
+            view: new ol.View({
+                center: ol.proj.fromLonLat([111, -7.5]),
+                zoom: 12,
+                rotation: 0,
+            }),
+        });
+
+        // Feature 객체를 하나 생성 ( 경도위도 좌표값을 Point 객체에 받아서 넘김)
+        var marker1 = new ol.Feature(new ol.geom.Point(ol.proj.fromLonLat([111, -7.5])));
+        // 레이어에 (lay.getSource()) Feature 추가 ( addFeature(하나의feature) )
+        lay.getSource().addFeature(marker1);
+
+
+        // 2. feature에 ID를 부여하고 추가
+
+        // Feature 객체를 하나 생성 ( 경도위도 좌표값을 Point 객체에 받아서 넘김)
+        var marker2 = new ol.Feature(new ol.geom.Point(ol.proj.fromLonLat([110.9, -7.5])));
+
+        // feature에 ID를 정할 수 있음.
+        marker2.setId('yourId');
+
+        // 레이어에 feature 추가
+        lay.getSource().addFeature(marker2);
+    </script>
+</body>
+
+</html>
