@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <!-- Reset.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
+
+    <!-- Openlayer library import -->
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.8.1/css/ol.css" type="text/css">
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.8.1/build/ol.js"></script>
+
+    <!-- Openlayer_Extension [ol-ext] library import -->
+    <link rel="stylesheet" href="https://viglino.github.io/ol-ext/dist/ol-ext.css" />
+    <script src="https://viglino.github.io/ol-ext/dist/ol-ext.js"></script>
+
+    <!-- JQuery import -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+
+        .map {
+            height: 100%;
+            width: 100%;
+        }
+
+        #catchlog {
+            position: absolute;
+            top: 1%;
+            left: 3%;
+            padding: 10px;
+            color: #333;
+            background-color: cyan;
+            border-radius: 10px;
+            z-index: 2;
+        }
+
+        .listboard {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            top: 10%;
+            left: 3%;
+            padding: 10px;
+            color: #333;
+            background-color: white;
+            border-radius: 10px;
+            overflow: auto;
+            overflow-x: hidden;
+            z-index: 2;
+        }
+
+        .listboard::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .listboard::-webkit-scrollbar-thumb {
+            background-color: #2f3542;
+            border-radius: 10px;
+            background-clip: padding-box;
+            border: 2px solid transparent;
+        }
+
+        .listboard::-webkit-scrollbar-track {
+            background-color: grey;
+            border-radius: 10px;
+            box-shadow: inset 0px 0px 5px white;
+        }
+
+        .item {
+            border: 1px solid grey;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px;
+        }
+    </style>
+    <title>OpenLayers example</title>
+</head>
+
+<body>
+    <div id="map" class="map">
+        <div id="catchlog">Catched Ping Counts : </div>
+        <div class="listboard">
+            <ul>
+                <!-- 내용물 추가될 곳 -->
+            </ul>
+        </div>
+    </div>
+    <script>
+        // 기본으로 깔릴 레이어 생성
+        var layers = [
+            new ol.layer.Tile({
+                title: 'osm',
+                type: 'base',
+                visible: true,
+                source: new ol.source.OSM()
+            }),
+        ];
+
+        // Map 객체 생성
+        const map = new ol.Map({
+            target: 'map',
+            layers: layers,
+            view: new ol.View({
+                center: ol.proj.fromLonLat([108, -7.5]),
+                zoom: 8,
+            }),
+        });
+
+        // 벡터 소스에 넣을 Feature 생성 구간
+        var fts = new Array();
+        // 원하는 클러스터 갯수만큼 반복 (200개)
+        for (var i = 0; i < 200; i++) {
+            let geometry = new ol.geom.Point(ol.proj.fromLonLat([Math.random() * 5 + 107, Math.random() - 8]));
+            let feature = new ol.Feature(geometry);
+            // ★ 중요한 부분, feature.set('key',value)로 feature에 넣을 key-value 쌍을 만들 수 있다. 설정할 수 있다.
+            feature.set('id', i);
+            feature.set('name', Math.random().toString(36).substring(2, 8) + i);
+            // features 배열에 Feature 하나씩 집어넣기.
+            fts.push(feature);
+        }
+
+        let vectorSource = new ol.source.Vector({
+            // 모아둔 200개 배열을 벡터 소스로써 넣음.
+            features: fts
+        });
+
+        let clusterSource = new ol.source.Cluster({
+            distance: 60, // 클러스터간 합치는 거리조건
+            source: vectorSource
+        });
+
+        clusterLayer = new ol.layer.AnimatedCluster({
+            title: 'ClusteringTest',
+            source: clusterSource,
+            animationDuration: 500,
+            style: getStyle // 이부분은 Style을 반환하는 아래 함수 참조
+        });
+        map.addLayer(clusterLayer);
+
+        var marker2 = new ol.Feature(new ol.geom.Point(ol.proj.fromLonLat([110.9, -7.5])));
+        // feature에 ID를 정할 수 있음.
+        marker2.set('id', 'yourid');
+        marker2.set('name', 'yourhey');
+        // 벡터 레이어가 아닌 벡터 소스에 feature 추가 (AnimatedCluster 에서는 벡터 레이어가 없기 때문.)
+        vectorSource.addFeature(marker2);
+
+        map.on("singleclick", function (e) {
+            map.forEachFeatureAtPixel(e.pixel, function (feature, layer) {
+                $('.listboard ul').empty();
+                console.log(feature);
+                console.log(feature.get('features').length)
+                console.log(feature.getProperties())
+
+                var feat = feature.get('features');
+                console.log(feat.length);
+                for (let i = 0; i < feat.length; i++) {
+                    let id = feat[i].get('id');
+                    let name = feat[i].get('name');
+                    console.log(feat[i].get('id'));
+                    console.log(feat[i].get('name'));
+                    $('.listboard ul').append(`<li class="item">${id} : ${name}</li>`)
+                }
+
+                // let id = feature.getId();
+                $('#catchlog').text('Catched Ping Counts : ' + feat.length);
+
+                // hitTolerance : 눌렀을때(터치했을때) 맞는 경계범위
+            }, { hitTolerance: 1 });
+        });
+
+        function getStyle(feature, resolution) {
+            let styleCache = {};
+            let size = feature.get('features').length;
+            let c = feature.get('features');
+            let test = c[0];
+
+            // 클러스터의 길이(집단 수)에 따라 다른 이미지가 보이도록 설정
+            let style = styleCache[size];
+            if (!style) {
+                if (size > 25) {
+                    style = styleCache[size] = new ol.style.Style({
+                        image: new ol.style.Icon({
+                            src: "./resources/F_poi_3.png",
+                            zIndex: 1,
+                            size: [100, 100],
+                            scale: 0.7,
+                        }),
+                        text: new ol.style.Text({
+                            text: size.toString(),
+                            fill: new ol.style.Fill({
+                                color: '#fff'
+                            }),
+                            font: '10px Arial',
+                            textAlign: 'center',
+                            offsetY: -15,
+                            offsetX: -16,
+                        })
+                    });
+                } else if (size > 10) {
+                    style = styleCache[size] = new ol.style.Style({
+                        image: new ol.style.Icon({
+                            src: "./resources/F_poi_2.png",
+                            zIndex: 1,
+                            size: [100, 100],
+                            scale: 0.7,
+                        }),
+                        text: new ol.style.Text({
+                            text: size.toString(),
+                            fill: new ol.style.Fill({
+                                color: '#fff'
+                            }),
+                            font: '10px Arial',
+                            textAlign: 'center',
+                            offsetY: -15,
+                            offsetX: -16,
+                        })
+                    });
+                } else if (size > 1) {
+                    style = styleCache[size] = new ol.style.Style({
+                        image: new ol.style.Icon({
+                            src: "./resources/F_poi_1.png",
+                            zIndex: 1,
+                            size: [100, 100],
+                            scale: 0.7,
+                        }),
+                        text: new ol.style.Text({
+                            text: size.toString(),
+                            fill: new ol.style.Fill({
+                                color: '#fff'
+                            }),
+                            font: '10px Arial',
+                            textAlign: 'center',
+                            offsetY: -15,
+                            offsetX: -16,
+                        })
+                    });
+                } else {
+                    style = styleCache[size] = new ol.style.Style({
+                        image: new ol.style.Icon({
+                            src: "./resources/poi2.png",
+                            zIndex: 1,
+                            size: [173, 269],
+                            scale: 0.1,
+                        }),
+                    });
+                }
+            }
+            return [style];
+        }
+    </script>
+</body>
+
+</html>
