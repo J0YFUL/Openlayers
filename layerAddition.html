@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.8.1/css/ol.css" type="text/css">
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.8.1/build/ol.js"></script>
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+
+        .map {
+            height: 100%;
+            width: 100%;
+        }
+
+        #remove {
+            position: absolute;
+            top: 1%;
+            left: 3%;
+            z-index: 2;
+        }
+
+        #add {
+            position: absolute;
+            top: 1%;
+            left: 10%;
+            z-index: 2;
+        }
+    </style>
+    <title>OpenLayers example</title>
+</head>
+
+<body>
+    <div id="map" class="map"></div>
+    <button id="remove">Remove layer</button>
+    <button id="add">Add layer</button>
+    <script type="text/javascript">
+
+        // 레이어 배열 생성
+        var lays = [
+            // 첫번째 레이어, lays[0]
+            new ol.layer.Tile({
+                title: 'osm',
+                type: 'base',
+                visible: true,
+                source: new ol.source.OSM()
+            }),
+            // 다른 배경의 두번째 레이어 추가, lays[1]
+            new ol.layer.Tile({
+                title: 'bing_road',
+                type: 'base',
+                source: new ol.source.BingMaps({
+                    key: 'Ag0RC261GIS2piKGzsg9RmnvrT8GHg9jVY27kPWUs28axMxdSfGJhCf2unSg6eeg',
+                    imagerySet: 'RoadOnDemand',
+                }),
+            }),
+        ];
+
+        // 새 레이어 생성 구간
+        var newlay = new ol.layer.Vector({
+            title: 'lay',
+            source: new ol.source.Vector(),
+            style: new ol.style.Style({
+                image: new ol.style.Icon({
+                    src: './marker.png',
+                    scale: 0.2,
+                })
+            })
+        });
+        // 레이어 배열에 레이어 추가 (push)
+        lays.push(newlay); // => layers[2]
+
+        // Map 선언 구간
+        var map = new ol.Map({
+            target: 'map',
+            layers: lays,
+            view: new ol.View({
+                center: ol.proj.fromLonLat([111, -7.5]),
+                zoom: 12,
+                rotation: 0,
+            }),
+        });
+
+        // 버튼을 DOM 에서 찾아, 이벤트 등록,
+        let rmbtn = document.getElementById('remove');
+        rmbtn.addEventListener('click', function () {
+            // map에서 가지고 있는 레이어들을 받아 각각의 레이어의 title을 비교, 'bing_road'인 것의 레이어 삭제
+            map.getLayers().forEach(function (layer) {
+                if (layer.get('title') === 'bing_road') {
+                    map.removeLayer(layer);
+                }
+            });
+        });
+
+        let adbtn = document.getElementById('add');
+        adbtn.addEventListener('click', function () {
+            map.addLayer(new ol.layer.Tile({
+                title: 'bing_road',
+                type: 'base',
+                source: new ol.source.BingMaps({
+                    key: 'Ag0RC261GIS2piKGzsg9RmnvrT8GHg9jVY27kPWUs28axMxdSfGJhCf2unSg6eeg',
+                    imagerySet: 'RoadOnDemand',
+                }),
+            }));
+        })
+        
+    </script>
+</body>
+
+</html>
+
+// let adbtn = document.getElementById('add');
+//         adbtn.addEventListener('click', function() {
+//             let own = false;
+//             map.getLayers().forEach(function(layer) {
+//                 if(layer.get('title') === 'bing_road') {
+//                     own = true;
+//                     return;
+//                 }
+//             });
+
+//             if(!own) {
+//                 map.addLayer(new ol.layer.Tile({
+//                     title: 'bing_road',
+//                     type: 'base',
+//                     source: new ol.source.BingMaps({
+//                         key: 'Ag0RC261GIS2piKGzsg9RmnvrT8GHg9jVY27kPWUs28axMxdSfGJhCf2unSg6eeg',
+//                         imagerySet: 'RoadOnDemand',
+//                     }),
+//                 }));
+//             }
+// });
