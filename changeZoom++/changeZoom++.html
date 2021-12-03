@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.8.1/css/ol.css" type="text/css">
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.8.1/build/ol.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+
+        .map {
+            height: 100%;
+            width: 100%;
+        }
+
+        #zmeter {
+            position: absolute;
+            top: 1%;
+            left: 3%;
+            padding: 10px;
+            color: blue;
+            background-color: white;
+            z-index: 2;
+        }
+    </style>
+    <title>OpenLayers example</title>
+</head>
+
+<body>
+    <div id="map" class="map">
+        <div id="zmeter">Zoom changed : </div>
+        <img id="overlay" src="./marker.png" alt="no-img" width="25" style="position: absolute;">
+    </div>
+    <script type="text/javascript">
+        var layers = [
+            new ol.layer.Tile({
+                title: 'osm',
+                type: 'base',
+                visible: true,
+                source: new ol.source.OSM()
+            }),
+        ];
+
+        var map = new ol.Map({
+            target: 'map',
+            layers: layers,
+            view: new ol.View({
+                center: ol.proj.fromLonLat([111, -7.5]),
+                zoom: 12,
+                rotation: 0,
+            }),
+        });
+
+        let marker = new ol.Overlay({
+            // 위치를 설정하는 position
+            position: ol.proj.transform(
+                [111, -7.5], // 좌표 설정
+                'EPSG:4326', // 입력한 좌표의(111,-7.5) 좌표계(4326)를 3857로 변경해준다.
+                'EPSG:3857',
+            ),
+            // html의 요소 ID를 넣는다.
+            element: document.getElementById('overlay'),
+        });
+        // map에 추가
+        map.addOverlay(marker);
+
+        // View 객체를 저장한다.
+        const view = map.getView();
+        
+        // Zoom 의 변경점을 이벤트로 잡는다.
+        view.on('change:resolution', (event) => {
+            let zoomlv = view.getZoom();      
+            $('#zmeter').text('Zoom changed(+11-) : ' + zoomlv);
+            // Zoom이 11보다 크면 보여주고 아니면 보이지 않도록 한다.
+            if (zoomlv >= 11) {        
+                $('#overlay').show();      
+            } else {        
+                $('#overlay').hide();      
+            }    
+        });
+    </script>
+</body>
+
+</html>
